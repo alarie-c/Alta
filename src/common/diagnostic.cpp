@@ -4,10 +4,9 @@
 #include <string>
 #include <utility>
 
-namespace diagnostic {
-
-std::ostream &operator<<(std::ostream &os, const Severity &severity) {
-  using enum Severity;
+std::ostream &operator<<(std::ostream &os,
+                         const Diagnostic::Severity &severity) {
+  using enum Diagnostic::Severity;
   switch (severity) {
   case Error:
     return os << "Error:";
@@ -20,8 +19,8 @@ std::ostream &operator<<(std::ostream &os, const Severity &severity) {
   }
 }
 
-std::ostream &operator<<(std::ostream &os, const Kind &kind) {
-  using enum Kind;
+std::ostream &operator<<(std::ostream &os, const Diagnostic::Kind &kind) {
+  using enum Diagnostic::Kind;
 #define X(name, repr, severity)                                                \
   case name:                                                                   \
     return os << repr;
@@ -49,13 +48,10 @@ std::ostream &operator<<(std::ostream &os, const Diagnostic &diag) {
 
   return os;
 }
-} // namespace diagnostic
 
-using namespace diagnostic;
-
-constexpr Severity get_kind_severity(const Kind &kind) {
-  using enum Severity;
-  using enum Kind;
+constexpr Diagnostic::Severity get_kind_severity(const Diagnostic::Kind &kind) {
+  using enum Diagnostic::Severity;
+  using enum Diagnostic::Kind;
 
 #define X(name, repr, severity)                                                \
   case name:                                                                   \
@@ -64,7 +60,7 @@ constexpr Severity get_kind_severity(const Kind &kind) {
   switch (kind) {
     DIAGNOSTIC_KINDS
   default:
-    return Severity::Error;
+    return Error;
   }
 #undef X
 }
@@ -73,16 +69,16 @@ Diagnostic::Diagnostic(Kind kind, const Span &span, std::string message)
     : severity(get_kind_severity(kind)), kind(kind), span(span),
       message(std::move(message)) {}
 
-Collection::Collection() : items({}) { items.reserve(16); }
+DiagCollect::DiagCollect() : items({}) { items.reserve(16); }
 
-auto Collection::begin() const { return items.begin(); }
-auto Collection::end() const { return items.end(); }
+auto DiagCollect::begin() const { return items.begin(); }
+auto DiagCollect::end() const { return items.end(); }
 
-void Collection::print_all() const {
+void DiagCollect::print_all() const {
   for (const auto &d : *this) {
     std::cout << d << "\n";
   }
   std::cout << std::endl;
 }
 
-void Collection::push(const Diagnostic &diag) { items.push_back(diag); }
+void DiagCollect::push(const Diagnostic &diag) { items.push_back(diag); }

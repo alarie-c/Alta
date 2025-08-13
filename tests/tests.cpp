@@ -1,10 +1,14 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.hpp"
+
 #include "common/diagnostic.hpp"
 #include "common/span.hpp"
-#include "doctest.hpp"
+#include "lexer/lexer.hpp"
+#include "lexer/token.hpp"
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 std::stringstream sstream_new() {
   std::stringstream ss;
@@ -72,8 +76,6 @@ TEST_CASE("Span buffer load operator overload") {
 }
 
 TEST_CASE("Diagnostic creation and printing") {
-  using namespace diagnostic;
-
   std::string raw_text = "Line 1\n" // 6
                          "Line 2\n" // 13
                          "Line 3";  // 19
@@ -83,7 +85,7 @@ TEST_CASE("Diagnostic creation and printing") {
 
   {
     const Span span(src, 0, 4);
-    const Diagnostic diag(Kind::InvalidString, span,
+    const Diagnostic diag(Diagnostic::Kind::InvalidString, span,
                           "Something about an error.");
     ss << diag;
 
@@ -96,7 +98,7 @@ TEST_CASE("Diagnostic creation and printing") {
   sstream_clr(ss);
   {
     const Span span(src, 7, 1);
-    const Diagnostic diag(Kind::InvalidCharacter, span,
+    const Diagnostic diag(Diagnostic::Kind::InvalidCharacter, span,
                           "Something about an error.");
     ss << diag;
 
@@ -105,5 +107,32 @@ TEST_CASE("Diagnostic creation and printing") {
     CHECK(str.find("<static>:2:1") != std::string::npos);
     CHECK(str.find("invalid character") != std::string::npos);
     CHECK(str.find("Error:") != std::string::npos);
+  }
+}
+
+TEST_CASE("Basic lexer tokenization") {
+  std::string raw_text = "main := function() 1234";
+  const Source src = Source(raw_text);
+
+  DiagCollect diagnostics;
+  TokenCollect tokens;
+  Lexer lexer(src, tokens, diagnostics);
+
+  lexer.lex();
+  const auto resulting_tokens = tokens.data();
+  CHECK(resulting_tokens.size() == 8);
+  CHECK(resulting_tokens[0].kind == Token::Kind::Identifier);
+  CHECK(resulting_tokens[1].kind == Token::Kind::Colon);
+  CHECK(resulting_tokens[2].kind == Token::Kind::Equal);
+  CHECK(resulting_tokens[3].kind == Token::Kind::Function);
+  CHECK(resulting_tokens[4].kind == Token::Kind::LParen);
+  CHECK(resulting_tokens[5].kind == Token::Kind::RParen);
+  CHECK(resulting_tokens[6].kind == Token::Kind::Integer);
+  CHECK(resulting_tokens[7].kind == Token::Kind::Eof);
+  CHECK(resulting_tokens[0].span.lexeme() == "main");
+  CHECK(resulting_tokens[6].span.lexeme() == "1234");
+
+  for (const auto &t : resulting_tokens) {
+    std::cerr << t << "\n";
   }
 }
