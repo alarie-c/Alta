@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_library(altac STATIC
     src/common/span.cpp
+    src/common/diagnostic.cpp
 )
 target_include_directories(altac PUBLIC ${PROJECT_SOURCE_DIR}/include)
 

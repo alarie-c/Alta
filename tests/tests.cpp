@@ -1,4 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "common/diagnostic.hpp"
 #include "common/span.hpp"
 #include "doctest.hpp"
 #include <iostream>
@@ -21,7 +22,7 @@ TEST_CASE("Span line numbers, column numbers, and lexemes") {
   std::string raw_text = "Line 1\n" // 6
                          "Line 2\n" // 13
                          "Line 3";  // 19
-  const Source src = Source(raw_text);
+  const Source src(raw_text);
 
   {
     const Span span(src, 0, 4);
@@ -47,7 +48,7 @@ TEST_CASE("Source line fetching") {
   std::string raw_text = "Line 1\n" // 6
                          "Line 2\n" // 13
                          "Line 3";  // 19
-  const Source src = Source(raw_text);
+  const Source src(raw_text);
 
   CHECK(src.line(1) == "Line 1\n");
   CHECK(src.line(2) == "Line 2\n");
@@ -58,7 +59,7 @@ TEST_CASE("Span buffer load operator overload") {
   std::string raw_text = "Line 1\n" // 6
                          "Line 2\n" // 13
                          "Line 3";  // 19
-  const Source src = Source(raw_text);
+  const Source src(raw_text);
   auto ss = sstream_new();
 
   {
@@ -67,5 +68,42 @@ TEST_CASE("Span buffer load operator overload") {
     const auto str = ss.str();
     std::cerr << str << std::endl;
     CHECK(str.find("<static>:1:1") != std::string::npos);
+  }
+}
+
+TEST_CASE("Diagnostic creation and printing") {
+  using namespace diagnostic;
+
+  std::string raw_text = "Line 1\n" // 6
+                         "Line 2\n" // 13
+                         "Line 3";  // 19
+  const Source src = Source(raw_text);
+  // Collection diag_collect;
+  auto ss = sstream_new();
+
+  {
+    const Span span(src, 0, 4);
+    const Diagnostic diag(Kind::InvalidString, span,
+                          "Something about an error.");
+    ss << diag;
+
+    const auto str = ss.str();
+    std::cerr << str << std::endl;
+    CHECK(str.find("<static>:1:1") != std::string::npos);
+    CHECK(str.find("invalid string") != std::string::npos);
+    CHECK(str.find("Error:") != std::string::npos);
+  }
+  sstream_clr(ss);
+  {
+    const Span span(src, 7, 1);
+    const Diagnostic diag(Kind::InvalidCharacter, span,
+                          "Something about an error.");
+    ss << diag;
+
+    const auto str = ss.str();
+    std::cerr << str << std::endl;
+    CHECK(str.find("<static>:2:1") != std::string::npos);
+    CHECK(str.find("invalid character") != std::string::npos);
+    CHECK(str.find("Error:") != std::string::npos);
   }
 }

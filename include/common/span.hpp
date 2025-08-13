@@ -1,6 +1,7 @@
 #ifndef SPAN_H
 #define SPAN_H
 #include <iostream>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -35,11 +36,11 @@ struct Span {
 
   /// Fetch the line number, returns `-1` if out of bounds. Line numbers are
   /// 1-based.
-  [[nodiscard]] int line_number() const;
+  [[nodiscard]] std::optional<size_t> line_number() const;
 
   /// Fetch the column number, returns `-1` if out of bounds. Column numbers are
   /// 1-based.
-  [[nodiscard]] int column_number() const;
+  [[nodiscard]] std::optional<size_t> column_number() const;
 
   /// Returns a string view containing the bytes that this span points to.
   /// Returns an empty `string_view` if out of bounds.

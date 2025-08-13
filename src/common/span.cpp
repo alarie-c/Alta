@@ -1,6 +1,7 @@
 #include "common/span.hpp"
 #include <cassert>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -50,9 +51,9 @@ std::string_view Source::line(const size_t ln) const {
   return std::string_view(content.data() + start, line_length);
 }
 
-int Span::line_number() const {
+std::optional<size_t> Span::line_number() const {
   if (offset >= source.size)
-    return -1;
+    return std::nullopt;
 
   const std::string_view sv(source.content.data(), offset);
 
@@ -65,9 +66,9 @@ int Span::line_number() const {
   return line;
 }
 
-int Span::column_number() const {
+std::optional<size_t> Span::column_number() const {
   if (offset >= source.size || offset + length > source.size)
-    return -1;
+    return std::nullopt;
 
   const auto end_of_previous_line = source.content.rfind('\n', offset);
 
@@ -88,72 +89,14 @@ std::string_view Span::lexeme() const {
   return std::string_view(source.content.data() + offset, length);
 }
 
-// template <size_t Lines>
-//   requires(Lines > 0)
-// std::array<std::string_view, Lines> Span::lines(bool search_down) const {
-//   if (offset >= source.size || offset + length > source.size)
-//     return {};
-
-//   std::array<std::string_view, Lines> result = {};
-
-//   // Start with the current line
-//   const auto end_of_previous_line = source.content.rfind('\n', offset);
-//   size_t first_left_endpoint;
-//   size_t first_right_endpoint;
-
-//   // Implies that the the start of previous line DNE, therefore this is the
-//   // first line
-//   if (end_of_previous_line == std::string::npos)
-//     first_left_endpoint = 0;
-//   else
-//     first_left_endpoint = end_of_previous_line + 1;
-
-//   // Find the right endpoint
-//   first_right_endpoint = source.content.find('\n', first_left_endpoint);
-
-//   // Implies the right endpoint is EOF
-//   if (first_right_endpoint == std::string::npos) {
-//     first_right_endpoint = source.size;
-//   }
-
-//   const auto first_length = first_right_endpoint - first_left_endpoint + 1;
-//   const size_t first_index = search_down ? 0 : Lines - 1;
-
-//   // Set the appropriate index in the array to this string view
-//   result[first_index] = std::string_view(
-//       source.content.data() + first_left_endpoint, first_length);
-
-//   // Early return to prevent over-reading or writing out of bounds
-//   if (Lines == 1)
-//     return result;
-
-//   // Create a new string_view for each line
-//   size_t last_offset = offset;
-//   size_t line_number = search_down ? 1 : Lines - 1;
-//   while (line_number < Lines) {
-//     const auto end_of_this_line = source.content.find('\n', last_offset);
-//     size_t left_endpoint;
-//     size_t right_endpoint;
-
-//     // Implies that this line goes until EOF
-//     if (end_of_this_line == std::string::npos) {
-
-//       for (size_t i = )
-//     }
-
-//     if (search_down) {
-//       ++line_number;
-//       continue;
-//     }
-//     --line_number;
-//   }
-
-//   return result;
-// }
-
 std::ostream &operator<<(std::ostream &os, const Span &span) {
-  const int y = span.line_number();
-  const int x = span.column_number();
+  const auto maybe_y = span.line_number();
+  const auto maybe_x = span.column_number();
+  const std::string y =
+      maybe_y.has_value() ? std::to_string(maybe_y.value()) : "<y?>";
+  const std::string x =
+      maybe_x.has_value() ? std::to_string(maybe_x.value()) : "<x?>";
+
   os << span.source.path << ":" << y << ":" << x;
   return os;
 }
