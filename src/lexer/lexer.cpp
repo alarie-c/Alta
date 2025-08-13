@@ -3,9 +3,8 @@
 #include "common/span.hpp"
 #include "lexer/token.hpp"
 #include <cctype>
-#include <expected>
+#include <optional>
 #include <string_view>
-#include <utility>
 
 /* -------------------------------------------------------------------------- */
 /* NON-ASSOCIATED HELPERS */
@@ -47,7 +46,6 @@ Lexer::Lexer(const Source &source, TokenCollect &tokens,
              DiagCollect &diagnostics)
     : source(source), diagnostics(diagnostics), tokens(tokens), cursor(0) {}
 
-void Lexer::push(Token token) { tokens.push(token); }
 bool Lexer::is_at_end(unsigned k) const { return cursor + k >= source.size; }
 void Lexer::skip_whitespace() {
   while (is_whitespace(current()))
@@ -112,7 +110,7 @@ Token Lexer::lex_number() {
 }
 
 // std::expected<Token, Diagnostic> Lexer::lex_string();
-std::expected<Token, Diagnostic> Lexer::lex_once() {
+std::optional<Token> Lexer::lex_once() {
   using enum Token::Kind;
 
   // Skip so the current thing is meaningful character
@@ -259,9 +257,11 @@ std::expected<Token, Diagnostic> Lexer::lex_once() {
   }
 
   // If nothing else matches it's an illegal character
-  return std::unexpected(Diagnostic(Diagnostic::Kind::InvalidCharacter,
-                                    Span(source, start, cursor - start + 1),
-                                    "This character is not allowed."));
+  const auto diag = Diagnostic(Diagnostic::Issue::InvalidCharacter,
+                               Span(source, start, cursor - start + 1),
+                               "This character is not allowed.");
+  diagnostics.push(diag);
+  return std::nullopt;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -271,9 +271,11 @@ std::expected<Token, Diagnostic> Lexer::lex_once() {
 void Lexer::lex() {
   while (true) {
     const auto maybe_token = lex_once();
+
+    // Check if the token is valid
     if (maybe_token.has_value()) {
       const auto token = maybe_token.value();
-      push(token);
+      tokens.push(token);
 
       // Break out of this loop if the last token is found
       if (token.kind == Token::Kind::Eof) {

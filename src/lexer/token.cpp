@@ -3,7 +3,11 @@
 
 Token::Token(Kind kind, Span span) : kind(kind), span(span) {}
 
-TokenCollect::TokenCollect() : items({}) {
+/* -------------------------------------------------------------------------- */
+/* COLLECTION IMPLEMENTATION */
+/* -------------------------------------------------------------------------- */
+
+TokenCollect::TokenCollect(const Source &source) : source(source), items({}) {
   items.reserve(INIT_TOKEN_RESERVE_SIZE);
 }
 
@@ -13,11 +17,23 @@ auto TokenCollect::end() const { return items.end(); }
 void TokenCollect::push(const Token &token) { items.push_back(token); }
 
 void TokenCollect::print_all() const {
+  std::cout << "Printing tokens for file: `" << source.path
+            << "`:" << std::endl;
+
+  // Print each token
+  unsigned i = 0;
   for (auto &t : *this) {
-    std::cout << t << "\n";
+    std::cout << "  " << i << ": " << t << "\n";
+    ++i;
   }
+
+  /// Flush the stream
   std::cout << std::endl;
 }
+
+/* -------------------------------------------------------------------------- */
+/* STREAM INSERATION OVERLOADS */
+/* -------------------------------------------------------------------------- */
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
   os << token.span << " [";

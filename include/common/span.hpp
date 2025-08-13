@@ -47,6 +47,10 @@ struct Span {
   [[nodiscard]] std::string_view lexeme() const;
 };
 
+/* -------------------------------------------------------------------------- */
+/* STREAM INSERTION OVERLOADS */
+/* -------------------------------------------------------------------------- */
+
 std::ostream &operator<<(std::ostream &os, const Span &span);
 
 #endif

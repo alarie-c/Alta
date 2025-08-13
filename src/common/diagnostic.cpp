@@ -4,10 +4,13 @@
 #include <string>
 #include <utility>
 
-std::ostream &operator<<(std::ostream &os,
-                         const Diagnostic::Severity &severity) {
-  using enum Diagnostic::Severity;
-  switch (severity) {
+/* -------------------------------------------------------------------------- */
+/* STREAM INSERTION OVERLOADS */
+/* -------------------------------------------------------------------------- */
+
+std::ostream &operator<<(std::ostream &os, const Diagnostic::Level &level) {
+  using enum Diagnostic::Level;
+  switch (level) {
   case Error:
     return os << "Error:";
   case Warning:
@@ -19,13 +22,13 @@ std::ostream &operator<<(std::ostream &os,
   }
 }
 
-std::ostream &operator<<(std::ostream &os, const Diagnostic::Kind &kind) {
-  using enum Diagnostic::Kind;
-#define X(name, repr, severity)                                                \
+std::ostream &operator<<(std::ostream &os, const Diagnostic::Issue &issue) {
+  using enum Diagnostic::Issue;
+#define X(name, repr, issue)                                                   \
   case name:                                                                   \
     return os << repr;
-  switch (kind) {
-    DIAGNOSTIC_KINDS
+  switch (issue) {
+    DIAGNOSTIC_ISSUES
   default:
     return os << "<unknown kind>";
   }
@@ -42,32 +45,44 @@ std::ostream &operator<<(std::ostream &os, const Diagnostic &diag) {
 
   const auto line = diag.span.source.line(maybe_y.value());
 
-  os << diag.severity << " " << diag.kind << "  -> " << diag.span << "\n"
+  os << diag.level << " " << diag.issue << "  -> " << diag.span << "\n"
      << "  " << line << "\n"
      << "Help: " << diag.message;
 
   return os;
 }
 
-constexpr Diagnostic::Severity get_kind_severity(const Diagnostic::Kind &kind) {
-  using enum Diagnostic::Severity;
-  using enum Diagnostic::Kind;
+/* -------------------------------------------------------------------------- */
+/* IMPLEMENTATION-PRIVATE HELPERS */
+/* -------------------------------------------------------------------------- */
+
+constexpr Diagnostic::Level level_from_issue(const Diagnostic::Issue &kind) {
+  using enum Diagnostic::Level;
+  using enum Diagnostic::Issue;
 
 #define X(name, repr, severity)                                                \
   case name:                                                                   \
     return severity;
 
   switch (kind) {
-    DIAGNOSTIC_KINDS
+    DIAGNOSTIC_ISSUES
   default:
     return Error;
   }
 #undef X
 }
 
-Diagnostic::Diagnostic(Kind kind, const Span &span, std::string message)
-    : severity(get_kind_severity(kind)), kind(kind), span(span),
+/* -------------------------------------------------------------------------- */
+/* DIAGNOSTIC IMPLEMENTATION */
+/* -------------------------------------------------------------------------- */
+
+Diagnostic::Diagnostic(Issue issue, const Span &span, std::string message)
+    : level(level_from_issue(issue)), issue(issue), span(span),
       message(std::move(message)) {}
+
+/* -------------------------------------------------------------------------- */
+/* COLLECTION IMPLEMENTATION */
+/* -------------------------------------------------------------------------- */
 
 DiagCollect::DiagCollect() : items({}) { items.reserve(16); }
 

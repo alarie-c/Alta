@@ -10,6 +10,10 @@
 #include <string>
 #include <vector>
 
+/* -------------------------------------------------------------------------- */
+/* STRING STREAM HELPERS */
+/* -------------------------------------------------------------------------- */
+
 std::stringstream sstream_new() {
   std::stringstream ss;
   ss.str("");
@@ -21,6 +25,10 @@ void sstream_clr(std::stringstream &ss) {
   ss.str("");
   ss.clear();
 }
+
+/* -------------------------------------------------------------------------- */
+/* COMMON/SPAN */
+/* -------------------------------------------------------------------------- */
 
 TEST_CASE("Span line numbers, column numbers, and lexemes") {
   std::string raw_text = "Line 1\n" // 6
@@ -75,17 +83,20 @@ TEST_CASE("Span buffer load operator overload") {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* COMMON/DIAGNOSTIC */
+/* -------------------------------------------------------------------------- */
+
 TEST_CASE("Diagnostic creation and printing") {
   std::string raw_text = "Line 1\n" // 6
                          "Line 2\n" // 13
                          "Line 3";  // 19
   const Source src = Source(raw_text);
-  // Collection diag_collect;
   auto ss = sstream_new();
 
   {
     const Span span(src, 0, 4);
-    const Diagnostic diag(Diagnostic::Kind::InvalidString, span,
+    const Diagnostic diag(Diagnostic::Issue::InvalidString, span,
                           "Something about an error.");
     ss << diag;
 
@@ -98,7 +109,7 @@ TEST_CASE("Diagnostic creation and printing") {
   sstream_clr(ss);
   {
     const Span span(src, 7, 1);
-    const Diagnostic diag(Diagnostic::Kind::InvalidCharacter, span,
+    const Diagnostic diag(Diagnostic::Issue::InvalidCharacter, span,
                           "Something about an error.");
     ss << diag;
 
@@ -110,12 +121,16 @@ TEST_CASE("Diagnostic creation and printing") {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* COMMON/LEXER */
+/* -------------------------------------------------------------------------- */
+
 TEST_CASE("Basic lexer tokenization") {
   std::string raw_text = "main := function() 1234";
   const Source src = Source(raw_text);
 
   DiagCollect diagnostics;
-  TokenCollect tokens;
+  TokenCollect tokens(src);
   Lexer lexer(src, tokens, diagnostics);
 
   lexer.lex();
@@ -132,7 +147,5 @@ TEST_CASE("Basic lexer tokenization") {
   CHECK(resulting_tokens[0].span.lexeme() == "main");
   CHECK(resulting_tokens[6].span.lexeme() == "1234");
 
-  for (const auto &t : resulting_tokens) {
-    std::cerr << t << "\n";
-  }
+  tokens.print_all();
 }
