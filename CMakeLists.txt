@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_library(altac STATIC
     src/common/span.cpp
     src/common/diagnostic.cpp
+    src/common/operator.cpp
     src/lexer/token.cpp
     src/lexer/lexer.cpp
 )

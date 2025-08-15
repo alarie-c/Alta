@@ -2,6 +2,7 @@
 #include "doctest.hpp"
 
 #include "common/diagnostic.hpp"
+#include "common/operator.hpp"
 #include "common/span.hpp"
 #include "lexer/lexer.hpp"
 #include "lexer/token.hpp"
@@ -148,4 +149,29 @@ TEST_CASE("Basic lexer tokenization") {
   CHECK(resulting_tokens[6].span.lexeme() == "1234");
 
   tokens.print_all();
+}
+
+/* -------------------------------------------------------------------------- */
+/* COMMON/OPERATOR */
+/* -------------------------------------------------------------------------- */
+
+TEST_CASE("Operator printing and flags") {
+  using enum operators::Kind;
+  auto ss = sstream_new();
+
+  {
+    const operators::Operator op(Add);
+    ss << op;
+    const auto output = ss.str();
+    std::cout << output << std::endl;
+    CHECK(output.find("op(+)") != std::string::npos);
+  }
+  sstream_clr(ss);
+  {
+    const operators::Operator op(Exp);
+    ss << op;
+    const auto output = ss.str();
+    std::cout << output << std::endl;
+    CHECK(output.find("op(**)") != std::string::npos);
+  }
 }
