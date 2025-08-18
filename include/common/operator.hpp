@@ -17,12 +17,12 @@ constexpr Flag operator|(Flag lhs, Flag rhs);
 constexpr Flag operator&(Flag lhs, Flag rhs);
 
 #define OPERATOR_LIST                                                          \
-  X(Add, "+", Token::Kind::Plus, Flag::Binary)                                 \
-  X(Sub, "-", Token::Kind::Minus, Flag::Binary | Flag::Unary)                  \
-  X(Mul, "*", Token::Kind::Star, Flag::Binary)                                 \
-  X(Div, "/", Token::Kind::Slash, Flag::Binary)                                \
-  X(Exp, "**", Token::Kind::StarStar, Flag::Binary)                            \
-  X(Assign, "=", Token::Kind::Equal, Flag::Assign)
+  X(Add, "ADD", Token::Kind::Plus, Flag::Binary)                               \
+  X(Sub, "SUB", Token::Kind::Minus, Flag::Binary | Flag::Unary)                \
+  X(Mul, "MUL", Token::Kind::Star, Flag::Binary)                               \
+  X(Div, "DIV", Token::Kind::Slash, Flag::Binary)                              \
+  X(Exp, "EXP", Token::Kind::StarStar, Flag::Binary)                           \
+  X(Assign, "ASSIGN", Token::Kind::Equal, Flag::Assign)
 
 enum class Kind {
 #define X(name, repr, tok, flags) name,

@@ -22,33 +22,32 @@ std::string_view Source::line(const size_t ln) const {
 
   size_t line = 1;
   size_t start = 0;
-  size_t end = 0;
 
-  // Search for the beginning of the line
+  // Find start of requested line
   for (size_t i = 0; i < size; ++i) {
-    if (line >= ln) {
+    if (line == ln) {
       start = i;
       break;
     }
-
-    if (content.at(i) == '\n')
+    if (content[i] == '\n')
       ++line;
   }
 
-  end = content.find('\n', start);
-
-  // Implies the end of the line is EOF
-  if (end == std::string::npos) {
-    end = size;
+  // If ln is beyond the number of lines, return empty view
+  if (line < ln) {
+    return {};
   }
 
-  auto line_length = end - start + 1;
+  // Find the end of the line (either '\n' or EOF)
+  size_t end = content.find('\n', start);
 
-  // Remove one if end points to EOF, since I don't want that in the string view
-  if (end == size)
-    line_length -= 1;
-
-  return std::string_view(content.data() + start, line_length);
+  if (end == std::string::npos) {
+    // No newline found: return to EOF (no newline at end)
+    return std::string_view(content.data() + start, size - start);
+  } else {
+    // Found a newline: include it in the view
+    return std::string_view(content.data() + start, (end - start) + 1);
+  }
 }
 
 std::optional<size_t> Span::line_number() const {
@@ -71,15 +70,9 @@ std::optional<size_t> Span::column_number() const {
     return std::nullopt;
 
   const auto end_of_previous_line = source.content.rfind('\n', offset);
-
-  // Implies that the the start of previous line DNE, therefore this is the
-  // first line
   if (end_of_previous_line == std::string::npos)
-    return static_cast<int>(offset) + 1;
-
-  // Otherwise, determine how far into the line offset is
-  const auto start_of_this_line = end_of_previous_line + 1;
-  return static_cast<int>(offset - start_of_this_line + 1);
+    return offset + 1;
+  return offset - end_of_previous_line;
 }
 
 std::string_view Span::lexeme() const {

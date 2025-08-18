@@ -1,3 +1,4 @@
+#include "parser/ast.hpp"
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.hpp"
 
@@ -164,7 +165,7 @@ TEST_CASE("Operator printing and flags") {
     ss << op;
     const auto output = ss.str();
     std::cout << output << std::endl;
-    CHECK(output.find("op(+)") != std::string::npos);
+    CHECK(output.find("ADD") != std::string::npos);
   }
   sstream_clr(ss);
   {
@@ -172,6 +173,24 @@ TEST_CASE("Operator printing and flags") {
     ss << op;
     const auto output = ss.str();
     std::cout << output << std::endl;
-    CHECK(output.find("op(**)") != std::string::npos);
+    CHECK(output.find("EXP") != std::string::npos);
   }
+}
+
+TEST_CASE("Node printing w/ indentation") {
+  std::string raw_text = "0.5 + 2";
+  const Source src = Source(raw_text);
+  CHECK(src.size == 7);
+
+  const Span spana(src, 0, 3);
+  const Span spanb(src, 6, 7);
+  const Span spanc(src, 0, 7);
+  ast::Node a(ast::Kind::Float, ast::Data{.node_float = {0.5}}, spana);
+  ast::Node b(ast::Kind::Int, ast::Data{.node_int = {2}}, spanb);
+
+  const operators::Operator op(operators::Kind::Add);
+  ast::Node c(ast::Kind::Binary,
+              ast::Data{.node_binary = {.lhs = a, .rhs = b, .op = op}}, spana);
+
+  c.print(0);
 }

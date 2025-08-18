@@ -29,18 +29,16 @@ Operator::Operator(Kind kind)
     : kind(kind), flags(get_flag_from_kind(this->kind)) {}
 
 std::ostream &operator<<(std::ostream &os, const Operator &op) {
-  os << "op(";
 #define X(name, repr, tok, flags)                                              \
   case Kind::name:                                                             \
-    os << repr;                                                                \
-    break;
+    return os << repr;
+
   switch (op.kind) {
     OPERATOR_LIST
   default:
-    os << "?";
+    return os << "?";
   }
 #undef X
-  return os << ")";
 }
 
 }; // namespace operators

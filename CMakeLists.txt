@@ -10,6 +10,8 @@ add_library(altac STATIC
     src/common/operator.cpp
     src/lexer/token.cpp
     src/lexer/lexer.cpp
+    src/parser/parser.cpp
+    src/parser/ast.cpp
 )
 target_include_directories(altac PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
