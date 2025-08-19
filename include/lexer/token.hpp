@@ -106,6 +106,8 @@ public:
   TokenCollect(const Source &source);
   auto begin() const;
   auto end() const;
+  size_t size() const;
+  Token eof() const;
 
   /// Returns a const reference to the underlying vector in the collection.
   const std::vector<Token> &data() const;

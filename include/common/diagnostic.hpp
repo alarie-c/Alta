@@ -9,6 +9,7 @@
   X(InvalidCharacter, "invalid character", Error)                              \
   X(InvalidString, "invalid string", Error)                                    \
   X(UnterminatedString, "unterminated string", Error)                          \
+  X(ExpectedExpression, "expected expression", Error)                          \
   X(InternalError, "internal error", Error)
 
 /// Used to represent some kind of compiler error that should be emitted to the

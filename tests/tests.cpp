@@ -1,4 +1,5 @@
 #include "parser/ast.hpp"
+#include "parser/parser.hpp"
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.hpp"
 
@@ -193,4 +194,25 @@ TEST_CASE("Node printing w/ indentation") {
               ast::Data{.node_binary = {.lhs = a, .rhs = b, .op = op}}, spana);
 
   c.print(0);
+}
+
+TEST_CASE(
+    "Parsing primary expressions and str->int and str->double conversions") {
+  std::string raw_text = "0.5";
+  const Source src = Source(raw_text);
+
+  DiagCollect diagnostics;
+  TokenCollect tokens(src);
+  Lexer lexer(src, tokens, diagnostics);
+  lexer.lex();
+  CHECK(tokens.size() == 2);
+  Parser parser(src, tokens, diagnostics);
+
+  const auto r = parser.parse_expr();
+  CHECK(r.has_value());
+
+  if (r.has_value()) {
+    CHECK(r.value().kind == ast::Kind::Float);
+    r.value().print(0);
+  }
 }

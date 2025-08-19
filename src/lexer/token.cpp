@@ -14,6 +14,8 @@ TokenCollect::TokenCollect(const Source &source) : source(source), items({}) {
 const std::vector<Token> &TokenCollect::data() const { return items; }
 auto TokenCollect::begin() const { return items.begin(); }
 auto TokenCollect::end() const { return items.end(); }
+size_t TokenCollect::size() const { return items.size(); }
+Token TokenCollect::eof() const { return items.back(); }
 void TokenCollect::push(const Token &token) { items.push_back(token); }
 
 void TokenCollect::print_all() const {
